@@ -1,0 +1,18 @@
+aws-eks-demo-cluster/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── vpc.tf
+├── eks.tf
+├── provider.tf
+├── alb.tf
+├── ecr.tf
+├── kubernetes/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── fetch-env.sh
+└── terraform.tfvars
+
+
+
+https://github.com/aws/secrets-store-csi-driver-provider-aws

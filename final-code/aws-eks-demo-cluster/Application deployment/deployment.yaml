@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: ocr
+  labels:
+    app: my-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      initContainers:
+      - name: init-myservice
+        image: amazon/aws-cli
+        command: ["/bin/sh", "-c"]
+        args:
+          - >
+            aws ssm get-parameters-by-path --path "/my-app/" --with-decryption --query "Parameters[*].{Name:Name,Value:Value}" --output text | awk '{print $1 "=" $2}' > /app/.env;
+            cat /app/.env;
+        volumeMounts:
+        - name: env-volume
+          mountPath: /app
+      containers:
+      - name: my-app-container
+        image: ${app_image}
+        envFrom:
+        - configMapRef:
+            name: my-app-config
+        volumeMounts:
+        - name: env-volume
+          mountPath: /app
+        env:
+        - name: MY_ENV_VAR
+          valueFrom:
+            secretKeyRef:
+              name: my-app-secrets
+              key: MY_ENV_VAR
+        - name: NEW_ENV_VAR
+          valueFrom:
+            secretKeyRef:
+              name: my-app-secrets
+              key: NEW_ENV_VAR
+      volumes:
+      - name: env-volume
+        emptyDir: {}
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 1
+          maxSurge: 1
